@@ -1,4 +1,3 @@
-from typing import Optional
 from SimpleSecretsManager.utility import SecretsUtility
 from SimpleSecretsManager.errors import *
 import os

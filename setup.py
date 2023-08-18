@@ -1,4 +1,4 @@
-from setuptools import setup, find_packages
+from setuptools import setup
 
 setup(
     name="SimpleSecretsManager",
@@ -7,7 +7,6 @@ setup(
     install_requires=[
         "cryptography",
     ],
-    author="Colin Kealty",
     license="MIT",
     description="A simple secrets manager",
     long_description=open("README.md").read(),

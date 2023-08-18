@@ -40,3 +40,5 @@ with secrets_manager:
 ```
 
 and then upon exiting, newvalue will be saved into "MY_SECRET"
+
+Provided under MIT License
