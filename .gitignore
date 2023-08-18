@@ -1,0 +1,4 @@
+build
+dist
+SimpleSecretsManager.egg-info
+*/__pycache__/
