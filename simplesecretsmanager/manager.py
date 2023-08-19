@@ -33,7 +33,7 @@ class SecretsManager:
         try:
             secret = self.secrets.get(key, default)
             if secret is None and default is None:
-                raise KeyError
+                raise KeyError()
             return secret
         except KeyError:
             raise SecretsError(f"Secret with key '{key}' not found.")
