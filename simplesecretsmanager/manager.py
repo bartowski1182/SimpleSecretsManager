@@ -1,7 +1,7 @@
 import os
 
 from simplesecretsmanager.errors import SecretsError
-from simplesecretsmanager.utility import SecretsUtility
+from simplesecretsmanager.utility import decrypt_secrets, encrypt_secrets
 
 
 class SecretsManager:
@@ -17,7 +17,7 @@ class SecretsManager:
             # And save it
             self.save()
         else:
-            self.secrets = SecretsUtility.decrypt_secrets(password, file_name)
+            self.secrets = decrypt_secrets(password, file_name)
 
     def __enter__(self) -> "SecretsManager":
         """Executed when entering the `with` block."""
@@ -67,4 +67,4 @@ class SecretsManager:
     def save(self) -> None:
         """Encrypt and save the current secrets to the binary file.
         Be sure to call this after transactions."""
-        SecretsUtility.encrypt_secrets(self.secrets, self.password, self.file_name)
+        encrypt_secrets(self.secrets, self.password, self.file_name)
