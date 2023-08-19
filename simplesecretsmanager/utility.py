@@ -16,7 +16,7 @@ from simplesecretsmanager.errors import EncryptionError, FileError, SecretsError
 
 
 class Pbkdf2Algorithm(BaseModel):
-    iterations: int = Field(100000, ge=100000, description="Pbkdf2 iterations")
+    iterations: int = Field(400000, ge=100000, description="Pbkdf2 iterations")
     algorithm: Type[hashes.HashAlgorithm] = hashes.SHA256
 
 
