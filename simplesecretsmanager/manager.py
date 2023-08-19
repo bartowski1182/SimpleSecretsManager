@@ -1,15 +1,30 @@
 import os
 
 from simplesecretsmanager.errors import SecretsError
-from simplesecretsmanager.utility import decrypt_secrets, encrypt_secrets
+from simplesecretsmanager.utility import (
+    Argon2Algorithm,
+    BcryptAlgorithm,
+    Pbkdf2Algorithm,
+    SecretsCipher,
+)
 
 
 class SecretsManager:
-    def __init__(self, password: str, file_name: str):
+    def __init__(
+        self,
+        password: str,
+        file_name: str,
+        algorithm: Pbkdf2Algorithm
+        | Argon2Algorithm
+        | BcryptAlgorithm = BcryptAlgorithm(),
+    ) -> None:
         """Initialize the Secrets Manager and decrypt the secrets.
         If file doesn't exist, create it."""
         self.password = password
         self.file_name = file_name
+
+        self.cipher = SecretsCipher(password, algorithm)
+
         # Check if the file exists
         if not os.path.exists(self.file_name):
             # If it doesn't, initialize an empty secrets dictionary
@@ -17,7 +32,7 @@ class SecretsManager:
             # And save it
             self.save()
         else:
-            self.secrets = decrypt_secrets(password, file_name)
+            self.secrets = self.cipher.decrypt_secrets(password, file_name)
 
     def __enter__(self) -> "SecretsManager":
         """Executed when entering the `with` block."""
@@ -67,4 +82,4 @@ class SecretsManager:
     def save(self) -> None:
         """Encrypt and save the current secrets to the binary file.
         Be sure to call this after transactions."""
-        encrypt_secrets(self.secrets, self.password, self.file_name)
+        self.cipher.encrypt_secrets(self.secrets, self.file_name)
