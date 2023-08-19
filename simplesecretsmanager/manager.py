@@ -1,7 +1,8 @@
 import os
 
-from simplesecretsmanager.errors import SecretsError
-from simplesecretsmanager.utility import (
+from errors import SecretsError, SecretsWarning
+
+from utility import (
     Argon2Algorithm,
     BcryptAlgorithm,
     Pbkdf2Algorithm,
@@ -17,29 +18,39 @@ class SecretsManager:
         algorithm: Pbkdf2Algorithm
         | Argon2Algorithm
         | BcryptAlgorithm = BcryptAlgorithm(),
+        save_password: bool = True,
     ) -> None:
         """Initialize the Secrets Manager and decrypt the secrets.
         If file doesn't exist, create it."""
-        self.password = password
-        self.file_name = file_name
 
-        self.cipher = SecretsCipher(password, algorithm)
+        if save_password:
+            self.password = password.encode()
+        self.file_name = file_name
+        self.save_password = save_password
+
+        self.cipher = SecretsCipher(algorithm)
 
         # Check if the file exists
         if not os.path.exists(self.file_name):
             # If it doesn't, initialize an empty secrets dictionary
             self.secrets = {}
             # And save it
-            self.save()
+            self.save(password)
         else:
-            self.secrets = self.cipher.decrypt_secrets(password, file_name)
+            self.secrets = self.cipher.decrypt_secrets(password.encode(), file_name)
 
     def __enter__(self) -> "SecretsManager":
-        """Executed when entering the `with` block."""
+        """Executed when entering the `with` block.
+        Only usable if saving the password in memory."""
+        if not self.save_password:
+            raise SecretsError(
+                "Attempting to enter with no password saved, this will not work."
+            )
         return self  # this allows you to use the instance within the `with` block
 
     def __exit__(self, exc_type, exc_val, exc_tb) -> None:
-        """Executed when exiting the `with` block."""
+        """Executed when exiting the `with` block.
+        Only usable if saving the password in memory."""
         self.save()
 
     def get_secret(self, key: str, default: str | None = None) -> str:
@@ -47,7 +58,8 @@ class SecretsManager:
         Throws SecretsError when key doesn't exist and no default value is given."""
         try:
             secret = self.secrets.get(key, default)
-            if secret is None or (secret is None and default is None):
+
+            if secret is None:
                 raise KeyError()
             return secret
         except KeyError:
@@ -79,7 +91,24 @@ class SecretsManager:
         except KeyError:
             raise SecretsError(f"Secret with key '{key}' not found.")
 
-    def save(self) -> None:
+    def save(self, password: str = None) -> None:
         """Encrypt and save the current secrets to the binary file.
-        Be sure to call this after transactions."""
-        self.cipher.encrypt_secrets(self.secrets, self.file_name)
+        Be sure to call this after transactions.
+        If given a password, will encrypt with the NEW password"""
+
+        if password is not None and self.save_password:
+            raise SecretsWarning(
+                "Passwords do not match, old password will be overwritten"
+            )
+
+        if password is not None:
+            self.password = password.encode()
+        if self.save_password and self.password is None:
+            raise SecretsError(
+                "Calling save with no saved password and no password given"
+            )
+
+        self.cipher.encrypt_secrets(self.secrets, self.file_name, self.password)
+
+        if not self.save_password:
+            self.password = None

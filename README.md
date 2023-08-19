@@ -17,6 +17,30 @@ secrets_manager.update_secret("ANOTHER_SECRET", "the_other_secret")
 secrets_manager.save()
 ```
 
+There are 2 additional options when creating your SecretsManager, you can pass a non-default algorithm (defautls to Pbkdf2Algorithm):
+
+```python
+from SimpleSecretsManager import manager, utility
+
+algorithm = utility.Argon2Algorithm()
+
+secrets_manager = manager.SecretsManager("password", "file.bin", algorithm=algorithm)
+```
+
+You can also choose to not have the password saved in memory:
+
+```python
+from SimpleSecretsManager import manager
+
+secrets_manager = manager.SecretsManager("password", "file.bin", save_password=False)
+
+secrets_manager.update_secret("MY_SECRET", "the_secret")
+# Must give password when saving if save_password = False, throws SecretsError otherwise
+secrets_manager.save("password")
+```
+
+## Note: when giving a password to save(), this will be used to encrypt the file, in place of whatever was orinally stored
+
 Retrieving
 
 ```python
@@ -40,5 +64,7 @@ with secrets_manager:
 ```
 
 and then upon exiting, newvalue will be saved into "MY_SECRET"
+
+## Note: This won't work and will throw an error if used when save_password is false, since we won't be able to save the value when we get there
 
 Provided under MIT License

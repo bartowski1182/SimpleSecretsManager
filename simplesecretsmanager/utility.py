@@ -1,4 +1,5 @@
 import base64
+import hashlib
 import json
 import os
 from enum import Enum
@@ -12,7 +13,7 @@ from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from pydantic import BaseModel, Field
 
-from simplesecretsmanager.errors import EncryptionError, FileError, SecretsError
+from errors import EncryptionError, FileError, SecretsError
 
 
 class Pbkdf2Algorithm(BaseModel):
@@ -33,13 +34,11 @@ class BcryptAlgorithm(BaseModel):
 class SecretsCipher:
     def __init__(
         self,
-        raw_password: str,
         algorithm: Pbkdf2Algorithm | Argon2Algorithm | BcryptAlgorithm,
     ) -> None:
         self._algorithm = algorithm
-        self.__raw_password = raw_password.encode()
 
-    def __generate_key_from_password(self, salt: bytes) -> bytes:
+    def __generate_key_from_password(self, salt: bytes, password: str) -> bytes:
         """Generate a key from the given password and salt."""
 
         if isinstance(self._algorithm, Pbkdf2Algorithm):
@@ -51,12 +50,12 @@ class SecretsCipher:
                     iterations=self._algorithm.iterations,
                     backend=default_backend(),
                 )
-                return base64.urlsafe_b64encode(kdf.derive(self.__raw_password))
+                return base64.urlsafe_b64encode(kdf.derive(password))
             except Exception as e:
                 raise SecretsError(f"Error generating key: {e}")
         elif isinstance(self._algorithm, Argon2Algorithm):
             argon = argon2.low_level.hash_secret(
-                self.__raw_password,
+                password,
                 salt,
                 hash_len=32,
                 type=argon2.low_level.Type.ID,
@@ -65,19 +64,22 @@ class SecretsCipher:
                 parallelism=self._algorithm.parallelism,
             )
 
-            return base64.urlsafe_b64encode(argon.split(b"$")[-1])
+            return base64.urlsafe_b64encode(
+                hashlib.sha256(argon.split(b"$")[-1]).digest()
+            )
         else:
-            return base64.urlsafe_b64encode(bcrypt.hashpw(self.__raw_password, salt))
+            return base64.urlsafe_b64encode(
+                hashlib.sha256(bcrypt.hashpw(password, salt)).digest()
+            )
 
-    def encrypt_secrets(self, secrets: dict, file_name: str) -> None:
+    def encrypt_secrets(self, secrets: dict, file_name: str, password: str) -> None:
         """Encrypt the given secrets dictionary and save to a binary file."""
 
-        salt = (
-            bcrypt.gensalt(self._algorithm.rounds)
-            if isinstance(self._algorithm, BcryptAlgorithm)
-            else os.urandom(16)
-        )
-        key = self.__generate_key_from_password(salt)
+        if isinstance(self._algorithm, BcryptAlgorithm):
+            salt = bcrypt.gensalt(self._algorithm.rounds)
+        else:
+            salt = os.urandom(16)
+        key = self.__generate_key_from_password(salt, password)
         cipher_suite = Fernet(key)
         encrypted_data = cipher_suite.encrypt(json.dumps(secrets).encode())
 
@@ -93,8 +95,11 @@ class SecretsCipher:
             with open(file_name, "rb") as file:
                 data = file.read()
 
-            salt, encrypted_data = data[:16], data[16:]
-            key = self.__generate_key_from_password(salt)
+            if isinstance(self._algorithm, BcryptAlgorithm):
+                salt, encrypted_data = data[:29], data[29:]
+            else:
+                salt, encrypted_data = data[:16], data[16:]
+            key = self.__generate_key_from_password(salt, password)
             cipher_suite = Fernet(key)
             decrypted_data = cipher_suite.decrypt(encrypted_data)
 
