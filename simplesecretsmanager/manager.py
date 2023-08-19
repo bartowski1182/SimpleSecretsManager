@@ -1,8 +1,8 @@
 import os
 
-from errors import SecretsError, SecretsWarning
+from .errors import SecretsError, SecretsWarning
 
-from utility import (
+from .utility import (
     Argon2Algorithm,
     BcryptAlgorithm,
     Pbkdf2Algorithm,

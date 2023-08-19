@@ -13,7 +13,7 @@ from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from pydantic import BaseModel, Field
 
-from errors import EncryptionError, FileError, SecretsError
+from .errors import EncryptionError, FileError, SecretsError
 
 
 class Pbkdf2Algorithm(BaseModel):
