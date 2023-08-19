@@ -32,7 +32,7 @@ class SecretsManager:
         Throws SecretsError when key doesn't exist and no default value is given."""
         try:
             secret = self.secrets.get(key, default)
-            if secret is None and default is None:
+            if secret is None or (secret is None and default is None):
                 raise KeyError()
             return secret
         except KeyError:
