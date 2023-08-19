@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "simplesecretsmanager"
-version = "0.3"
+version = "0.4"
 description = "A simple secrets manager"
 authors = ["Bartowski"]
 license = "MIT"
@@ -9,6 +9,9 @@ readme = "README.md"
 [tool.poetry.dependencies]
 python = "^3.10"
 cryptography = "^41.0.3"
+argon2-cffi = "^23.1.0"
+bcrypt = "^4.0.1"
+pydantic = "^2.2.1"
 
 
 [build-system]
