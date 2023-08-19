@@ -1,6 +1,7 @@
-from SimpleSecretsManager.utility import SecretsUtility
-from SimpleSecretsManager.errors import *
 import os
+
+from simplesecretsmanager.errors import SecretsError
+from simplesecretsmanager.utility import SecretsUtility
 
 
 class SecretsManager:

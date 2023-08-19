@@ -1,12 +1,13 @@
+import base64
+import json
+import os
+
 from cryptography.fernet import Fernet, InvalidToken
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
-from cryptography.hazmat.primitives import serialization
-import os
-import base64
-import json
-from SimpleSecretsManager.errors import *
+
+from simplesecretsmanager.errors import EncryptionError, FileError, SecretsError
 
 
 class SecretsUtility:
