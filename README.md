@@ -1,11 +1,17 @@
 # A Simple Secrets Manager for python
 
+### Installing:
+
+```bash
+pip3 install simplesecretsmanager
+```
+
 ## How to use:
 
 Storing
 
 ```python
-from SimpleSecretsManager import manager
+from simplesecretsmanager import manager
 
 secrets_manager = manager.SecretsManager("password", "file.bin")
 
@@ -20,7 +26,7 @@ secrets_manager.save()
 There are 2 additional options when creating your SecretsManager, you can pass a non-default algorithm (defautls to Pbkdf2Algorithm):
 
 ```python
-from SimpleSecretsManager import manager, utility
+from simplesecretsmanager import manager, utility
 
 algorithm = utility.Argon2Algorithm()
 
@@ -30,7 +36,7 @@ secrets_manager = manager.SecretsManager("password", "file.bin", algorithm=algor
 You can also choose to not have the password saved in memory:
 
 ```python
-from SimpleSecretsManager import manager
+from simplesecretsmanager import manager
 
 secrets_manager = manager.SecretsManager("password", "file.bin", save_password=False)
 
@@ -44,7 +50,7 @@ secrets_manager.save("password")
 Retrieving
 
 ```python
-from SimpleSecretsManager import manager
+from simplesecretsmanager import manager
 
 secrets_manager = manager.SecretsManager("password", "file.bin")
 
