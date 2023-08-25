@@ -96,7 +96,11 @@ class SecretsManager:
         Be sure to call this after transactions.
         If given a password, will encrypt with the NEW password"""
 
-        if password is not None and self.save_password:
+        if (
+            password is not None
+            and self.save_password
+            and password.encode() != self.password
+        ):
             raise SecretsWarning(
                 "Passwords do not match, old password will be overwritten"
             )
